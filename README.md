@@ -1,6 +1,33 @@
-# bunch
+# 同步非阻塞的golang libray: bunch
+- Call: 访问其它服务(IO密集型最佳)，不阻塞主逻辑
+- After: 主逻辑单线程,同步写代码,减少异步callback
+- 设计为library,而非framework,方便被集成
 
-# redis-benchmark -h localhost -p 6379 -t ping -c 1000 -n 10000
+# 游戏服务器使用礼包码举例
+```
+	//主逻辑tick中集成如下代码
+	select {
+    case f := <-b.AfterQ():
+      f() 
+  } 
+
+	//处理玩家使用礼包码的请求
+  b.NewCalls().Call(func() (interface{}, error) {
+    //阻塞访问礼包码,服务，校验是否可以领取礼包
+    //return 礼包信息,错误码
+  }).After(func(i interface{}, e error) {
+    // 主逻辑操作玩家数据
+    // i: 礼包信息
+    // 发放礼包
+  }).Call(func() (interface{}, error) {
+    //阻塞通知数据统计平台
+  }).After(func(i interface{}, e error) {
+    //回归主逻辑
+  }).Commit()
+```
+
+# 测试异步切换开销,so easy
+### redis-benchmark -h localhost -p 6379 -t ping -c 1000 -n 10000
 ```
 ====== PING_INLINE ======
   10000 requests completed in 0.12 seconds
@@ -43,7 +70,7 @@
 84033.61 requests per second
 ```
 
-# 原生redis-server: redis-benchmark -h localhost -p 30302 -t ping -c 1000 -n 10000
+### 原生redis-server: redis-benchmark -h localhost -p 30302 -t ping -c 1000 -n 10000
 ```
 ====== PING_INLINE ======
   10000 requests completed in 0.12 seconds
