@@ -5,15 +5,15 @@
 
 # 游戏服务器使用礼包码举例
 ```
-	//主逻辑tick中集成如下代码
-	b := bunch.New()
-	select {
-		case f := <-b.AfterQ():
-			f() 
-	} 
+  //主逻辑tick中集成如下代码
+  b := bunch.New()
+  select {
+    case f := <-b.AfterQ():
+      f() 
+  } 
 
-	//处理玩家使用礼包码的请求
-	b.NewCalls().Call(func() (interface{}, error) {
+  //处理玩家使用礼包码的请求
+  b.NewCalls().Call(func() (interface{}, error) {
     //阻塞访问礼包码,服务，校验是否可以领取礼包
     //return 礼包信息,错误码
   }).After(func(i interface{}, e error) {
